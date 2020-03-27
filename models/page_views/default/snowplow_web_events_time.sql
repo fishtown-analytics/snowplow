@@ -9,47 +9,28 @@
 }}
 
 
-with all_events as (
+with events as (
 
-    select * from {{ ref('snowplow_base_events') }}
-
-),
-
-events as (
-
-    select * from all_events
-    {% if is_incremental() %}
-    where collector_tstamp > (
-        select coalesce(max(max_tstamp), '0001-01-01') from {{ this }}
-    )
-    {% endif %}
+    select * from ({{ snowplow_web_events_tmp() }})
 
 ),
-
-web_page_context as (
-
-    select * from {{ ref('snowplow_web_page_context') }}
-
-),
-
 
 prep as (
 
     select
 
-        wp.page_view_id,
+        page_view_id,
 
-        min({{snowplow.timestamp_ntz('ev.derived_tstamp')}}) as min_tstamp,
-        max({{snowplow.timestamp_ntz('ev.derived_tstamp')}}) as max_tstamp,
+        min({{snowplow.timestamp_ntz('derived_tstamp')}}) as min_tstamp,
+        max({{snowplow.timestamp_ntz('derived_tstamp')}}) as max_tstamp,
 
-        sum(case when ev.event_name = 'page_view' then 1 else 0 end) as pv_count,
-        sum(case when ev.event_name = 'page_ping' then 1 else 0 end) as pp_count,
-        (sum(case when ev.event_name = 'page_ping' then 1 else 0 end) * {{ var('snowplow:page_ping_frequency', 30) }}) as time_engaged_in_s
+        sum(case when event_name = 'page_view' then 1 else 0 end) as pv_count,
+        sum(case when event_name = 'page_ping' then 1 else 0 end) as pp_count,
+        (sum(case when event_name = 'page_ping' then 1 else 0 end) * {{ var('snowplow:page_ping_frequency', 30) }}) as time_engaged_in_s
 
-    from events as ev
-        inner join web_page_context as wp on ev.event_id = wp.root_id
+    from events
 
-    where ev.event_name in ('page_view', 'page_ping')
+    where event_name in ('page_view', 'page_ping')
     group by 1
 
 ),

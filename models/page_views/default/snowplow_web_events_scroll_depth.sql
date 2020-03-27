@@ -8,26 +8,9 @@
     )
 }}
 
-with all_events as (
+with events as (
 
-    select * from {{ ref('snowplow_base_events') }}
-
-),
-
-events as (
-
-    select * from all_events
-    {% if is_incremental() %}
-    where collector_tstamp > (
-        select coalesce(max(max_tstamp), '0001-01-01') from {{ this }}
-    )
-    {% endif %}
-
-),
-
-web_page_context as (
-
-    select * from {{ ref('snowplow_web_page_context') }}
+    select * from ({{ snowplow_web_events_tmp() }})
 
 ),
 
@@ -35,28 +18,27 @@ prep as (
 
     select
 
-        wp.page_view_id,
+        page_view_id,
 
-        max(ev.collector_tstamp) as max_tstamp,
+        max(collector_tstamp) as max_tstamp,
 
-        max(ev.doc_width) as doc_width,
-        max(ev.doc_height) as doc_height,
+        max(doc_width) as doc_width,
+        max(doc_height) as doc_height,
 
-        max(ev.br_viewwidth) as br_viewwidth,
-        max(ev.br_viewheight) as br_viewheight,
+        max(br_viewwidth) as br_viewwidth,
+        max(br_viewheight) as br_viewheight,
 
-        least(greatest(min(coalesce(ev.pp_xoffset_min, 0)), 0), max(ev.doc_width)) as hmin,
-        least(greatest(max(coalesce(ev.pp_xoffset_max, 0)), 0), max(ev.doc_width)) as hmax,
+        least(greatest(min(coalesce(pp_xoffset_min, 0)), 0), max(doc_width)) as hmin,
+        least(greatest(max(coalesce(pp_xoffset_max, 0)), 0), max(doc_width)) as hmax,
 
-        least(greatest(min(coalesce(ev.pp_yoffset_min, 0)), 0), max(ev.doc_height)) as vmin,
-        least(greatest(max(coalesce(ev.pp_yoffset_max, 0)), 0), max(ev.doc_height)) as vmax
+        least(greatest(min(coalesce(pp_yoffset_min, 0)), 0), max(doc_height)) as vmin,
+        least(greatest(max(coalesce(pp_yoffset_max, 0)), 0), max(doc_height)) as vmax
 
-    from events as ev
-        inner join web_page_context as wp on ev.event_id = wp.root_id
+    from events
 
-    where ev.event_name in ('page_view', 'page_ping')
-      and ev.doc_height > 0
-      and ev.doc_width > 0
+    where event_name in ('page_view', 'page_ping')
+      and doc_height > 0
+      and doc_width > 0
 
     group by 1
 

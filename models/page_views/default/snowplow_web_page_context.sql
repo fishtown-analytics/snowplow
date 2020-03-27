@@ -8,7 +8,8 @@
     config(
         materialized='table',
         sort='page_view_id',
-        dist='page_view_id'
+        dist='page_view_id',
+        enabled = (var('snowplow:context:web_page', False) != False)
     )
 }}
 

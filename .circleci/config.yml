@@ -41,6 +41,9 @@ jobs:
             dbt run --target bigquery --full-refresh --vars 'update: false'
             dbt run --target bigquery --vars 'update: true'
             dbt test --target bigquery
+            dbt run --target bigquery --full-refresh --vars '{"update": false, "snowplow:context:web_page": false}'
+            dbt run --target bigquery --vars '{"update": true, "snowplow:context:web_page": false}'
+            dbt test --target bigquery
 
       - run:
           name: "Run Tests - Redshift"
@@ -53,6 +56,9 @@ jobs:
             dbt run --target redshift --full-refresh --vars 'update: false'
             dbt run --target redshift --vars 'update: true'
             dbt test --target redshift
+            dbt run --target redshift --full-refresh --vars '{"update": false, "snowplow:context:web_page": false}'
+            dbt run --target redshift --vars '{"update": true, "snowplow:context:web_page": false}'
+            dbt test --target redshift
 
       - run:
           name: "Run Tests - Snowflake"
@@ -64,6 +70,9 @@ jobs:
             dbt seed --target snowflake --full-refresh
             dbt run --target snowflake --full-refresh --vars 'update: false'
             dbt run --target snowflake --vars 'update: true'
+            dbt test --target snowflake
+            dbt run --target snowflake --full-refresh --vars '{"update": false, "snowplow:context:web_page": false}'
+            dbt run --target snowflake --vars '{"update": true, "snowplow:context:web_page": false}'
             dbt test --target snowflake
 
 

@@ -9,17 +9,29 @@ test-redshift:
 	dbt run --target redshift --full-refresh --vars 'update: false'
 	dbt run --target redshift --vars 'update: true'
 	dbt test --target redshift
+	# test canonical event structure
+	dbt run --target redshift --full-refresh --vars '{"update": false, "snowplow:context:web_page": false}'
+	dbt run --target redshift --vars '{"update": true, "snowplow:context:web_page": false}'
+	dbt test --target redshift
 
 test-snowflake:
 	dbt seed --target snowflake --full-refresh
 	dbt run --target snowflake --full-refresh --vars 'update: false'
 	dbt run --target snowflake --vars 'update: true'
 	dbt test --target snowflake
+	# test canonical event structure
+	dbt run --target snowflake --full-refresh --vars '{"update": false, "snowplow:context:web_page": false}'
+	dbt run --target snowflake --vars '{"update": true, "snowplow:context:web_page": false}'
+	dbt test --target snowflake
 
 test-bigquery:
 	dbt seed --target bigquery --full-refresh
 	dbt run --target bigquery --full-refresh --vars 'update: false'
 	dbt run --target bigquery --vars 'update: true'
+	dbt test --target bigquery
+	# test canonical event structure
+	dbt run --target bigquery --full-refresh --vars '{"update": false, "snowplow:context:web_page": false}'
+	dbt run --target bigquery --vars '{"update": true, "snowplow:context:web_page": false}'
 	dbt test --target bigquery
 
 test-all: test-redshift test-snowflake test-bigquery

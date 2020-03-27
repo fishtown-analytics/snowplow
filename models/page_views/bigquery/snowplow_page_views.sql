@@ -27,7 +27,7 @@ with all_events as (
 
     -- load up events from the start date, and the day before it, to ensure
     -- that we capture pageviews that span midnight
-    where DATE(collector_tstamp) >= date_sub('{{ start_date }}', interval 1 day)
+    where DATE(collector_tstamp) >= date_sub(date('{{ start_date }}'), interval 1 day)
 
 ),
 
@@ -39,7 +39,7 @@ new_sessions as (
     from all_events
 
     -- only consider events for sessions that occurred on or after the start_date
-    where DATE(collector_tstamp) >= '{{ start_date }}'
+    where DATE(collector_tstamp) >= date('{{ start_date }}')
 
 ),
 
@@ -52,6 +52,8 @@ relevant_events as (
     where domain_sessionid in (select distinct domain_sessionid from new_sessions)
 
 ),
+
+{% if var('snowplow:context:web_page', False) %}
 
 web_page_context as (
 
@@ -70,6 +72,17 @@ events as (
     where dedupe = 1
 
 ),
+
+{% else %}
+
+events as (
+    
+    select * from relevant_events
+    where dedupe = 1
+    
+),
+
+{% endif %}
 
 page_views as (
 

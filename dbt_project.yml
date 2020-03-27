@@ -23,11 +23,14 @@ models:
 
     vars:
       #'snowplow:events': TABLE OR {{ REF() }}
-      #'snowplow:context:web_page': TABLE OR {{ REF() }}
+      #'snowplow:context:web_page': TABLE OR {{ REF() }} or FALSE (if included in events)
       #'snowplow:context:performance_timing': TABLE OR {{ REF() }} or FALSE
       #'snowplow:context:useragent': TABLE OR {{ REF() }} or FALSE
       'snowplow:timezone': 'America/New_York'
       'snowplow:page_ping_frequency': 30
       'snowplow:app_ids': []
+      'snowplow:partition_col':
+        name: collector_tstamp
+        precision: second
       'snowplow:pass_through_columns': []
       'snowplow:page_view_lookback_days': 1
